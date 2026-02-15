@@ -24,6 +24,15 @@ definitions:
     required:
     - user_id
     type: object
+  main.RegisterUserPayload:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   main.UpdatePostRequest:
     properties:
       content:
@@ -133,6 +142,38 @@ info:
   title: Social API
   version: "1.0"
 paths:
+  /authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: Mendaftarkan user baru. Mengirim username, email, password. Setelah
+        itu token invite dikirim via email (jika mailing diaktifkan).
+      parameters:
+      - description: Username (4-50), email, password (8-32)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'message: user registered'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request body tidak valid
+          schema:
+            type: object
+        "500":
+          description: Server error
+          schema:
+            type: object
+      summary: Register user
+      tags:
+      - authentication
   /health:
     get:
       description: Mengecek status kesehatan API. Mengembalikan status, env, dan version.

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"math/rand"
 	"socialv3/internal/store"
@@ -106,7 +107,9 @@ func generateUsers(num int) []*store.User {
 		users[i] = &store.User{
 			Username: usernames[rand.Intn(len(usernames))] + randChar(50),
 			Email:    usernames[rand.Intn(len(usernames))] + randChar(50) + "@example.com",
-			Password: "foobar12345",
+		}
+		if err := users[i].Password.Set("foobar12345"); err != nil {
+			panic(err)
 		}
 	}
 	return users
@@ -140,15 +143,24 @@ func generateCommentsByUsersAndPosts(num int, users []*store.User, posts []*stor
 	return comments
 }
 
-func Seed(store store.Storage) error {
+func Seed(db *sql.DB, store store.Storage) error {
 	ctx := context.Background()
+
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
 
 	users := generateUsers(100)
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
+		if err := store.Users.Create(ctx, tx, user); err != nil {
 			log.Println("error creating user", user.Username, err)
 			return err
 		}
+	}
+	if err := tx.Commit(); err != nil {
+		return err
 	}
 
 	posts := generatePostsByUsers(500, users)

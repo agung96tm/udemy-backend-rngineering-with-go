@@ -24,6 +24,53 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/authentication/user": {
+            "post": {
+                "description": "Mendaftarkan user baru. Mengirim username, email, password. Setelah itu token invite dikirim via email (jika mailing diaktifkan).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "Username (4-50), email, password (8-32)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.RegisterUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "message: user registered",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Request body tidak valid",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Mengecek status kesehatan API. Mengembalikan status, env, dan version.",
@@ -517,6 +564,20 @@ const docTemplate = `{
                 "user_id": {
                     "type": "integer",
                     "minimum": 1
+                }
+            }
+        },
+        "main.RegisterUserPayload": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

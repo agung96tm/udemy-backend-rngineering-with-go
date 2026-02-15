@@ -1,10 +1,12 @@
 package main
 
 import (
-	"log"
 	db2 "socialv3/internal/db"
 	"socialv3/internal/env"
 	"socialv3/internal/store"
+	"time"
+
+	"go.uber.org/zap"
 )
 
 const version = "1.0.0"
@@ -38,20 +40,28 @@ func main() {
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 5),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3,
+		},
 	}
+
+	// logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
 
 	db, err := db2.New(cfg.db.addr, cfg.db.maxIdleConns, cfg.db.maxOpenConns, cfg.db.maxIdleTime)
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 	defer db.Close()
-	log.Println("Connected to database")
+	logger.Info("Connected to database")
 	storage := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  storage,
+		logger: logger,
 	}
 
-	log.Fatal(app.run(app.mount()))
+	logger.Fatal(app.run(app.mount()))
 }

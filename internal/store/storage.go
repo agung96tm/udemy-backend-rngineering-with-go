@@ -23,8 +23,9 @@ type Storage struct {
 		GetUserFeed(ctx context.Context, userID int64, pq PaginatedFeedQuery) ([]*PostWithMeta, error)
 	}
 	Users interface {
-		Create(context.Context, *User) error
+		Create(context.Context, *sql.Tx, *User) error
 		GetByID(context.Context, int64) (*User, error)
+		CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error
 	}
 	Comments interface {
 		GetAllByPostID(ctx context.Context, postID int64) ([]*Comment, error)
@@ -43,4 +44,16 @@ func NewStorage(db *sql.DB) Storage {
 		Comments: &CommentStore{db: db},
 		Follower: &FollowerStore{db: db},
 	}
+}
+
+func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
