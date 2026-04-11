@@ -5,6 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"socialv3/internal/store"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type userKey string
@@ -48,15 +51,14 @@ type FollowUserRequest struct {
 //	@Router			/users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromContext(r)
-
-	var payload FollowUserRequest
-	if err := app.readJSON(w, r, &payload); err != nil {
+	followedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
-	err := app.store.Follower.Follow(ctx, followerUser.ID, payload.UserID)
+	err = app.store.Follower.Follow(ctx, followerUser.ID, followedID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -87,16 +89,15 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Failure		500		{object}	object					"Server error"
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	unfollowedUser := getUserFromContext(r)
-
-	var payload FollowUserRequest
-	if err := app.readJSON(w, r, &payload); err != nil {
+	followerUser := getUserFromContext(r)
+	unfollowedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
-	err := app.store.Follower.Unfollow(ctx, unfollowedUser.ID, payload.UserID)
+	err = app.store.Follower.Unfollow(ctx, followerUser.ID, unfollowedID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -109,6 +110,36 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 
 	_ = app.jsonResponse(w, http.StatusOK, map[string]interface{}{
 		"message": "user unfollowed successfully",
+	})
+}
+
+// activateUserHandler godoc
+//
+//	@Summary		Aktivasi user
+//	@Description	Mengaktivasi user dengan token invite yang dikirim via email saat registrasi.
+//	@Tags			users
+//	@Produce		json
+//	@Param			token	path		string					true	"Token aktivasi (dari email invite)"
+//	@Success		200		{object}	map[string]interface{}	"message: user activated successfully"
+//	@Failure		400		{object}	object					"Token tidak valid atau kadaluarsa"
+//	@Failure		404		{object}	object					"Token tidak ditemukan"
+//	@Failure		500		{object}	object					"Server error"
+//	@Router			/users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	err := app.store.Users.Activate(r.Context(), token)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.badRequestError(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	_ = app.jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"message": "user activated successfully",
 	})
 }
 

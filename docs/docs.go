@@ -50,10 +50,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "message: user registered",
+                        "description": "User yang baru dibuat beserta token aktivasi",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/main.UserWithToken"
                         }
                     },
                     "400": {
@@ -268,6 +267,54 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Post tidak ditemukan",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/activate/{token}": {
+            "put": {
+                "description": "Mengaktivasi user dengan token invite yang dikirim via email saat registrasi.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Aktivasi user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token aktivasi (dari email invite)",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message: user activated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Token tidak valid atau kadaluarsa",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Token tidak ditemukan",
                         "schema": {
                             "type": "object"
                         }
@@ -594,6 +641,35 @@ const docTemplate = `{
                 }
             }
         },
+        "main.UserWithToken": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "$ref": "#/definitions/store.Role"
+                },
+                "role_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "store.Comment": {
             "type": "object",
             "properties": {
@@ -705,6 +781,23 @@ const docTemplate = `{
                 }
             }
         },
+        "store.Role": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "store.User": {
             "type": "object",
             "properties": {
@@ -715,6 +808,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "$ref": "#/definitions/store.Role"
+                },
+                "role_id": {
                     "type": "integer"
                 },
                 "updated_at": {

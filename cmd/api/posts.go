@@ -35,7 +35,7 @@ type UpdatePostRequest struct {
 //	@Failure		500		{object}	object				"Server error"
 //	@Router			/posts [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
-	userID := 1
+	user := getUserFromContext(r)
 	ctx := r.Context()
 
 	var payload CreatePostRequest
@@ -52,7 +52,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID:  int64(userID),
+		UserID:  user.ID,
 	}
 	if err := app.store.Posts.Create(ctx, post); err != nil {
 		app.internalServerError(w, r, err)

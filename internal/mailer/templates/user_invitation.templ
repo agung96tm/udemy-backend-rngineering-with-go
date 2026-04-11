@@ -1,0 +1,20 @@
+{{ define "subject" }}Selesaikan pendaftaran – SocialV3{{ end }}
+
+{{ define "body" }}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 480px; margin: 0 auto; padding: 24px;">
+	<p>Hai {{ .Username }},</p>
+	<p>Terima kasih sudah mendaftar. Klik tautan di bawah untuk mengaktifkan akun Anda:</p>
+	<p>
+		<a href="{{ .ActivationURL }}" style="color: #2563eb; text-decoration: none;">{{ .ActivationURL }}</a>
+	</p>
+	<p>Jika Anda tidak mendaftar, abaikan email ini.</p>
+	<p>Terima kasih,<br>Tim SocialV3</p>
+</body>
+</html>
+{{ end }}

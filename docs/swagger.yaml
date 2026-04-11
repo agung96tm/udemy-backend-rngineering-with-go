@@ -42,6 +42,25 @@ definitions:
         maxLength: 200
         type: string
     type: object
+  main.UserWithToken:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/store.Role'
+      role_id:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
   store.Comment:
     properties:
       content:
@@ -115,6 +134,17 @@ definitions:
       version:
         type: integer
     type: object
+  store.Role:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+    type: object
   store.User:
     properties:
       created_at:
@@ -122,6 +152,12 @@ definitions:
       email:
         type: string
       id:
+        type: integer
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/store.Role'
+      role_id:
         type: integer
       updated_at:
         type: string
@@ -159,10 +195,9 @@ paths:
       - application/json
       responses:
         "201":
-          description: 'message: user registered'
+          description: User yang baru dibuat beserta token aktivasi
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/main.UserWithToken'
         "400":
           description: Request body tidak valid
           schema:
@@ -425,6 +460,39 @@ paths:
           schema:
             type: object
       summary: Unfollow user
+      tags:
+      - users
+  /users/activate/{token}:
+    put:
+      description: Mengaktivasi user dengan token invite yang dikirim via email saat
+        registrasi.
+      parameters:
+      - description: Token aktivasi (dari email invite)
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: user activated successfully'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Token tidak valid atau kadaluarsa
+          schema:
+            type: object
+        "404":
+          description: Token tidak ditemukan
+          schema:
+            type: object
+        "500":
+          description: Server error
+          schema:
+            type: object
+      summary: Aktivasi user
       tags:
       - users
   /users/feed:

@@ -107,6 +107,9 @@ func generateUsers(num int) []*store.User {
 		users[i] = &store.User{
 			Username: usernames[rand.Intn(len(usernames))] + randChar(50),
 			Email:    usernames[rand.Intn(len(usernames))] + randChar(50) + "@example.com",
+			//Role: store.Role{
+			//	Name: "user",
+			//},
 		}
 		if err := users[i].Password.Set("foobar12345"); err != nil {
 			panic(err)
