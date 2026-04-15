@@ -4,10 +4,17 @@ on:
   push:
     branches:
       - main
-
+      - master
+    paths:
+      - "CHANGELOG.md"
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-api-version
+  cancel-in-progress: true
 
 jobs:
   sync-version:
@@ -22,12 +29,21 @@ jobs:
         id: ver
         run: |
           set -euo pipefail
-          line=$(grep -m1 -E '^## [0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md || true)
-          if [ -z "$line" ]; then
-            echo "::error::No heading like '## 1.2.3 (...)' found in CHANGELOG.md"
+          # release-please: "## [1.2.3](url) (date)" atau "## [1.2.3] - date"
+          # format manual: "## 1.2.3 (date)"
+          v=$(awk '
+            /^## / {
+              if (tolower($0) ~ /^##[[:space:]]+unreleased/) next
+              if (match($0, /[0-9]+\.[0-9]+\.[0-9]+/)) {
+                print substr($0, RSTART, RLENGTH)
+                exit
+              }
+            }
+          ' CHANGELOG.md)
+          if [ -z "$v" ]; then
+            echo "::error::Tidak menemukan semver di heading ## … pada CHANGELOG.md (contoh: ## 1.2.3 atau ## [1.2.3](…))"
             exit 1
           fi
-          v=$(echo "$line" | sed -E 's/^## ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "Resolved version: $v"
 
@@ -37,9 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           V="$VERSION"
-          # const version = "…"
           sed -i -E "s/const version = \"[^\"]*\"/const version = \"$V\"/" cmd/api/main.go
-          # // @version … (tab/spasi di antara token)
           sed -i -E 's|(//[[:space:]]*@version[[:space:]]+)[0-9.]+|\1'"$V"'|' cmd/api/main.go
 
       - name: Commit and push if changed
