@@ -1,0 +1,56 @@
+name: Update API version from CHANGELOG
+
+on:
+  push:
+    branches:
+      - main
+
+
+permissions:
+  contents: write
+
+jobs:
+  sync-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version from CHANGELOG.md
+        id: ver
+        run: |
+          set -euo pipefail
+          line=$(grep -m1 -E '^## [0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md || true)
+          if [ -z "$line" ]; then
+            echo "::error::No heading like '## 1.2.3 (...)' found in CHANGELOG.md"
+            exit 1
+          fi
+          v=$(echo "$line" | sed -E 's/^## ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $v"
+
+      - name: Apply version to cmd/api/main.go
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          V="$VERSION"
+          # const version = "…"
+          sed -i -E "s/const version = \"[^\"]*\"/const version = \"$V\"/" cmd/api/main.go
+          # // @version … (tab/spasi di antara token)
+          sed -i -E 's|(//[[:space:]]*@version[[:space:]]+)[0-9.]+|\1'"$V"'|' cmd/api/main.go
+
+      - name: Commit and push if changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cmd/api/main.go
+          if git diff --cached --quiet; then
+            echo "No changes to cmd/api/main.go (already in sync)."
+            exit 0
+          fi
+          git commit -m "chore: sync API version from CHANGELOG (${{ steps.ver.outputs.version }})"
+          git push
