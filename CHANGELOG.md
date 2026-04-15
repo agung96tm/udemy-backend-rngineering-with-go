@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/agung96tm/udemy-backend-rngineering-with-go/compare/v1.1.0...v1.2.0) (2026-04-15)
+
+
+### Features
+
+* update api version to main.go ([2cb52cc](https://github.com/agung96tm/udemy-backend-rngineering-with-go/commit/2cb52ccb27cfb77fbcb7fb2b3159afa63d99aa62))
+
 ## [1.1.0](https://github.com/agung96tm/udemy-backend-rngineering-with-go/compare/v1.0.0...v1.1.0) (2026-04-15)
 
 
