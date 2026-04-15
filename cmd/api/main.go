@@ -19,7 +19,7 @@ import (
 const version = "1.0.0"
 
 //	@title			Social API
-//	@version		1.0
+//	@version		1.0.0
 //	@description	API untuk aplikasi sosial: manajemen users, posts, follow/unfollow, dan feed.
 //	@termsOfService	http://swagger.io/terms/
 
