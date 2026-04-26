@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  db:
+    container_name: "socialv2-blast-db"
+    image: postgres:16.10-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - socialv2-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=socialv2
+      - POSTGRES_USER=socialv2
+      - POSTGRES_DB=socialv2_db
+
+#  redis:
+#    container_name: "socialv2-redis"
+#    image: redis:7.2.4-alpine
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - socialv2-redis-data:/data
+
+volumes:
+  socialv2-db-data: {}
+#  gapai-blast-redis-data: {}

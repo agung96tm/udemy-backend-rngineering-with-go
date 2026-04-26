@@ -1,0 +1,2 @@
+ALTER TABLE posts
+    ADD COLUMN version BIGINT DEFAULT 0;

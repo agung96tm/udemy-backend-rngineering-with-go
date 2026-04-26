@@ -1,0 +1,9 @@
+{{ define "subject" }}Finish Registration{{ end }}
+
+{{ define "body" }}
+<body>
+    <h3>Hi, {{ .Name }}</h3>
+    <p>Let's go activate your account — click the link below:</p>
+    <p><a href="{{ .ActivationURL }}">{{ .ActivationURL }}</a></p>
+</body>
+{{ end }}

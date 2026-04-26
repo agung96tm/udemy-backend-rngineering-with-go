@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS posts (
+                                     id BIGSERIAL PRIMARY KEY,
+                                     title VARCHAR(255) NOT NULL,
+                                     content TEXT NOT NULL,
+                                     tags TEXT[] DEFAULT '{}',
+                                     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
